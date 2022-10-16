@@ -13,6 +13,22 @@ This project was generated via [manage-fastapi](https://ycd.github.io/manage-fas
 
 ## Showcases
 
+### Image Classifikation
+
+
+### Image Segmentation
+
+
+### Object Detection
+
+
+
+### Panoptic Segmentation
+
+
+### KeyPointDetection
+
+
 ## Installation of Dependencies
 Conda/Miniconda is recommended. This Project uses poetry for dependency management. To install poetry run:
 
