@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from pathlib import Path
 import uuid
+from app.core.cv_services import image_classification, object_detection, semantic_segmentation, panoptic_segmentation, image_captioning
+
 
 def get_application():
     # generate folder for tmp data.
@@ -71,3 +73,13 @@ async def key_det(file: UploadFile):
 
     id = save_img(file)
     pass
+
+# rest service for image captioning.
+@app.post("/image-captioning")
+async def img_cap(file: UploadFile):
+    id = save_img(file)
+
+    # call service.
+    pred = image_captioning(f"tmp/{id}.jpg")
+    return pred
+

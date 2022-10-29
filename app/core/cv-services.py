@@ -111,3 +111,31 @@ def document_recognition(path_to_image):
 
 def keypoint_detection(path_to_image):
     pass
+
+def image_captioning(path_to_image):
+    # load the model
+    model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+    feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+    tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    
+    # maximum length of the return. The model will stop generating if it reaches this length.
+    max_length = 16
+    num_beams = 4
+    gen_kwargs = {"max_length": max_length, "num_beams": num_beams}
+
+    # load the image. The image should be in RGB format and will be converted.
+    image = Image.open(path_to_image)
+    if image.mode != "RGB":
+        image = image.convert(mode="RGB")
+    
+    pixel_values = feature_extractor(images=image, return_tensors="pt").pixel_values
+    pixel_values = pixel_values.to(device)
+
+    output_ids = model.generate(pixel_values, **gen_kwargs)
+
+    preds = tokenizer.batch_decode(output_ids, skip_special_tokens=True)
+
+    return preds
