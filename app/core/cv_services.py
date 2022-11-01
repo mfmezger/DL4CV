@@ -4,7 +4,6 @@ import torch
 from PIL import Image
 
 
-
 def draw_on_image(results, img, model, score_confidence=0.9, debugging=False):
     """Draws the bounding boxes on the image
 
@@ -52,10 +51,10 @@ def draw_on_image(results, img, model, score_confidence=0.9, debugging=False):
 
 
 def image_classification(path_to_img):
-    
+
     image = Image.open(path_to_img)
     image = image.convert("RGB")
-    
+
     extractor = AutoFeatureExtractor.from_pretrained("microsoft/resnet-50")
 
     model = AutoModelForImageClassification.from_pretrained("microsoft/resnet-50")
@@ -98,9 +97,9 @@ def object_detection(path_to_image):
 def semantic_segmentation(path_to_image):
     pass
 
+
 def panoptic_segmentation(path_to_image):
-    """https://huggingface.co/facebook/detr-resnet-50-panoptic
-    """
+    """https://huggingface.co/facebook/detr-resnet-50-panoptic"""
     feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/detr-resnet-50-panoptic")
 
     model = AutoModelForImageSegmentation.from_pretrained("facebook/detr-resnet-50-panoptic")
@@ -115,11 +114,14 @@ def panoptic_segmentation(path_to_image):
     processed_sizes = torch.as_tensor(inputs["pixel_values"].shape[-2:]).unsqueeze(0)
     result = feature_extractor.post_process_panoptic(outputs, processed_sizes)[0]
 
+
 def document_recognition(path_to_image):
     pass
 
+
 def keypoint_detection(path_to_image):
     pass
+
 
 def image_captioning(path_to_image):
     # load the model
@@ -129,7 +131,7 @@ def image_captioning(path_to_image):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
-    
+
     # maximum length of the return. The model will stop generating if it reaches this length.
     max_length = 16
     num_beams = 4
@@ -139,7 +141,7 @@ def image_captioning(path_to_image):
     image = Image.open(path_to_image)
     if image.mode != "RGB":
         image = image.convert(mode="RGB")
-    
+
     pixel_values = feature_extractor(images=image, return_tensors="pt").pixel_values
     pixel_values = pixel_values.to(device)
 

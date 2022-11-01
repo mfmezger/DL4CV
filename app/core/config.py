@@ -1,5 +1,5 @@
-from typing import Any, Dict, List, Optional, Union
-from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator, BaseModel
+from typing import List, Union
+from pydantic import AnyHttpUrl, BaseSettings, validator, BaseModel
 
 
 class Settings(BaseSettings):
@@ -20,6 +20,7 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
 
 class LogConfig(BaseModel):
     """Logging configuration to be set for the server"""
