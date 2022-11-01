@@ -3,6 +3,8 @@ import cv2
 import torch
 from PIL import Image
 
+
+
 def draw_on_image(results, img, model, score_confidence=0.9, debugging=False):
     """Draws the bounding boxes on the image
 

@@ -1,15 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from  fastapi  import  UploadFile
+from fastapi  import  UploadFile
 from core.config import settings
 from pathlib import Path
 import uuid
+import logging
 from core.cv_services import image_classification, object_detection, semantic_segmentation, panoptic_segmentation, image_captioning
-
+from logging.config import dictConfig
+from core.config import LogConfig
 
 def get_application():
     # generate folder for tmp data.
     Path("tmp").mkdir(parents=False, exist_ok=True)
+    dictConfig(LogConfig().dict())
+    logger = logging.getLogger("client")
 
     _app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -21,10 +25,10 @@ def get_application():
         allow_headers=["*"],
     )
 
-    return _app
+    return _app, logger
 
 
-app = get_application()
+app, logger = get_application()
 
 
 def save_img(file):
@@ -34,6 +38,9 @@ def save_img(file):
     with open(path_to_img, "wb") as buffer:
         # save file to filesystem
         buffer.write(file.file.read())
+
+    # log the file storage.
+    logger.info("File saved to %s", path_to_img)
 
     return id
 
@@ -45,7 +52,10 @@ async def img_cla(file: UploadFile):
     id = save_img(file)
 
     # call service.
+    logger.info("Starting Image Classification")
     result = image_classification(f"tmp/{id}.{file.filename.split('.')[-1]}")
+
+    logger.info("Returning the results.")
 
     return {"result": result}
 
