@@ -1,6 +1,6 @@
 # dl4cv -  A Computer Vision Hugging Face Server Backend :rocket:
 
-This is a projekt to integrate the major Computer Vision Use Cases into one Backend. The Deep Learning is  done via the 
+This is a projekt to integrate the major Computer Vision Use Cases into one Backend. The Deep Learning is  done via the
 Hugging Face Models.
 
 This project was generated via [manage-fastapi](https://ycd.github.io/manage-fastapi/)! :tada:
