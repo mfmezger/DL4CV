@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.core.config import settings
+from  fastapi  import  UploadFile
+from core.config import settings
 from pathlib import Path
 import uuid
-from app.core.cv_services import image_classification, object_detection, semantic_segmentation, panoptic_segmentation, image_captioning
+from core.cv_services import image_classification, object_detection, semantic_segmentation, panoptic_segmentation, image_captioning
 
 
 def get_application():
@@ -45,6 +45,9 @@ async def img_cla(file: UploadFile):
     id = save_img(file)
 
     # call service.
+    result = image_classification(f"tmp/{id}.{file.filename.split('.')[-1]}")
+
+    return {"result": result}
 
 # rest service for object detection
 @app.post("/object-detection")

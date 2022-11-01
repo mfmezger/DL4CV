@@ -1,4 +1,7 @@
-form transformers import AutoFeatureExtractor, AutoModelForImageClassification, DetrFeatureExtractor, DetrForObjectDetection, AutoModelForImageSegmentation
+from transformers import AutoFeatureExtractor, AutoModelForImageClassification, DetrFeatureExtractor, DetrForObjectDetection, AutoModelForImageSegmentation
+import cv2
+import torch
+from PIL import Image
 
 def draw_on_image(results, img, model, score_confidence=0.9, debugging=False):
     """Draws the bounding boxes on the image
@@ -47,11 +50,15 @@ def draw_on_image(results, img, model, score_confidence=0.9, debugging=False):
 
 
 def image_classification(path_to_img):
+    
+    image = Image.open(path_to_img)
+    image = image.convert("RGB")
+    
     extractor = AutoFeatureExtractor.from_pretrained("microsoft/resnet-50")
 
     model = AutoModelForImageClassification.from_pretrained("microsoft/resnet-50")
 
-    inputs = extractor(images=path_to_img, return_tensors="pt")
+    inputs = extractor(images=image, return_tensors="pt")
 
     with torch.no_grad():
         logits = model(**inputs).logits
