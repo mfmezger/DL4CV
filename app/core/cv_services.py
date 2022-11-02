@@ -2,6 +2,13 @@ from transformers import AutoFeatureExtractor, AutoModelForImageClassification, 
 import cv2
 import torch
 from PIL import Image
+import logging
+from logging.config import dictConfig
+from core.config import LogConfig
+
+dictConfig(LogConfig().dict())
+logger = logging.getLogger("client")
+cache_dir = "models"
 
 
 def draw_on_image(results, img, model, score_confidence=0.9, debugging=False):
@@ -55,9 +62,9 @@ def image_classification(path_to_img):
     image = Image.open(path_to_img)
     image = image.convert("RGB")
 
-    extractor = AutoFeatureExtractor.from_pretrained("microsoft/resnet-50")
+    extractor = AutoFeatureExtractor.from_pretrained("microsoft/resnet-50", cache_dir=cache_dir)
 
-    model = AutoModelForImageClassification.from_pretrained("microsoft/resnet-50")
+    model = AutoModelForImageClassification.from_pretrained("microsoft/resnet-50", cache_dir=cache_dir)
 
     inputs = extractor(images=image, return_tensors="pt")
 
@@ -68,7 +75,7 @@ def image_classification(path_to_img):
     return model.config.id2label[predicted_label]
 
 
-def object_detection(path_to_image):
+def object_detection(path_to_image, path_to_save):
     """Run a forward pass of the model on the image
 
     :param path_to_image: Parth to the image in the temporary folder
@@ -76,22 +83,31 @@ def object_detection(path_to_image):
     """
     image = Image.open(path_to_image)
     image = image.convert("RGB")
+    logger.debug("Initializing Models")
+    feature_extractor = DetrFeatureExtractor.from_pretrained("facebook/detr-resnet-50", cache_dir=cache_dir)
+    logger.debug("Initializing Models")
+    model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-50", cache_dir=cache_dir)
 
-    feature_extractor = DetrFeatureExtractor.from_pretrained("facebook/detr-resnet-50")
-    model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-50")
-
+    logger.debug("Models are initialized")
     inputs = feature_extractor(images=image, return_tensors="pt")
     outputs = model(**inputs)
+    logger.debug("Forward Passcompleted")
 
     # convert outputs (bounding boxes and class logits) to COCO API
     target_sizes = torch.tensor([image.size[::-1]])
-    results = feature_extractor.post_process(outputs, target_sizes=target_sizes)[0]
+    results = feature_extractor.post_process_object_detection(outputs, target_sizes=target_sizes)[0]
     img = cv2.imread(path_to_image)
 
+    logger.debug("Drawing Bounding Boxes")
     # draw on image.
     img, detection_class, prob = draw_on_image(results, img, model)
+    logger.info("Object Detection complete.")
+    img = Image.fromarray(img)
 
-    return img
+    # save image
+    img.save(path_to_save)
+    logger.debug("Returning Image")
+    return path_to_save
 
 
 def semantic_segmentation(path_to_image):
@@ -100,9 +116,9 @@ def semantic_segmentation(path_to_image):
 
 def panoptic_segmentation(path_to_image):
     """https://huggingface.co/facebook/detr-resnet-50-panoptic"""
-    feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/detr-resnet-50-panoptic")
+    feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/detr-resnet-50-panoptic", cache_dir=cache_dir)
 
-    model = AutoModelForImageSegmentation.from_pretrained("facebook/detr-resnet-50-panoptic")
+    model = AutoModelForImageSegmentation.from_pretrained("facebook/detr-resnet-50-panoptic", cache_dir=cache_dir)
 
     # prepare image for the model
     inputs = feature_extractor(images=image, return_tensors="pt")
@@ -125,9 +141,9 @@ def keypoint_detection(path_to_image):
 
 def image_captioning(path_to_image):
     # load the model
-    model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
-    feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
-    tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+    model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning", cache_dir=cache_dir)
+    feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning", cache_dir=cache_dir)
+    tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning", cache_dir=cache_dir)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -150,3 +166,11 @@ def image_captioning(path_to_image):
     preds = tokenizer.batch_decode(output_ids, skip_special_tokens=True)
 
     return preds
+
+
+def main():
+    object_detection("/Users/marc/Documents/GitHub/DL4CV/app/tmp/d96da37d-1eff-47d9-8248-1957a8dea953.jpeg")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import UploadFile
+from fastapi.responses import FileResponse
 from core.config import settings
 from pathlib import Path
 import uuid
@@ -13,6 +14,11 @@ from core.config import LogConfig
 def get_application():
     # generate folder for tmp data.
     Path("tmp").mkdir(parents=False, exist_ok=True)
+    # generate  folder for saving data.
+    Path("data").mkdir(parents=False, exist_ok=True)
+    # generate folder for the models, it is not necessary for use with docker but allows for faster development.
+    Path("models").mkdir(parents=False, exist_ok=True)
+
     dictConfig(LogConfig().dict())
     logger = logging.getLogger("client")
 
@@ -69,11 +75,11 @@ async def obj_det(file: UploadFile):
 
     # call service.
     logger.info("Starting Object Detection")
-    result = object_detection(f"tmp/{id}.{file.filename.split('.')[-1]}")
+    result = object_detection(f"tmp/{id}.{file.filename.split('.')[-1]}", f"data/{id}.jpg")
 
     logger.info("Returning the results.")
 
-    return {"result": result}
+    return FileResponse(result)
 
 
 # rest service for semantic segmentation.
