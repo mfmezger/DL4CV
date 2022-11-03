@@ -1,5 +1,16 @@
-from transformers import AutoFeatureExtractor, AutoModelForImageClassification, DetrFeatureExtractor, DetrForObjectDetection, AutoModelForImageSegmentation
+from transformers import (
+    AutoFeatureExtractor,
+    VisionEncoderDecoderModel,
+    ViTFeatureExtractor,
+    AutoTokenizer,
+    AutoModelForImageClassification,
+    DetrFeatureExtractor,
+    DetrForObjectDetection,
+    AutoModelForImageSegmentation,
+    DetrForSegmentation,
+)
 import cv2
+import io
 import torch
 from PIL import Image
 import logging
@@ -111,10 +122,6 @@ def object_detection(path_to_image, path_to_save):
 
 
 def semantic_segmentation(path_to_image):
-    pass
-
-
-def panoptic_segmentation(path_to_image):
     """https://huggingface.co/facebook/detr-resnet-50-panoptic"""
     feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/detr-resnet-50-panoptic", cache_dir=cache_dir)
 
@@ -128,7 +135,44 @@ def panoptic_segmentation(path_to_image):
 
     # use the `post_process_panoptic` method of `DetrFeatureExtractor` to convert to COCO format
     processed_sizes = torch.as_tensor(inputs["pixel_values"].shape[-2:]).unsqueeze(0)
-    result = feature_extractor.post_process_panoptic(outputs, processed_sizes)[0]
+    result = feature_extractor.post_process_semantic(outputs, processed_sizes)[0]
+
+    # the segmentation is stored in a special-format png
+    panoptic_seg = Image.open(io.BytesIO(result["png_string"]))
+
+
+def panoptic_segmentation(path_to_image, path_to_save):
+    """https://huggingface.co/facebook/detr-resnet-50-panoptic"""
+    image = Image.open(path_to_image)
+    image = image.convert("RGB")
+
+    logger.debug("Initialize  the models")
+    feature_extractor = DetrFeatureExtractor.from_pretrained("facebook/detr-resnet-50-panoptic", cache_dir=cache_dir)
+
+    logger.debug("Initialize  the models")
+    model = DetrForSegmentation.from_pretrained("facebook/detr-resnet-50-panoptic", cache_dir=cache_dir)
+
+    logger.debug("Start forward pass")
+    # prepare image for the model
+    inputs = feature_extractor(images=image, return_tensors="pt")
+
+    # forward pass
+    outputs = model(**inputs)
+
+    logger.debug("Start postprocessing")
+
+    # use the `post_process_panoptic` method of `DetrFeatureExtractor` to convert to COCO format
+    processed_sizes = torch.as_tensor(inputs["pixel_values"].shape[-2:]).unsqueeze(0)
+    result = feature_extractor.post_process_panoptic_segmentation(outputs, processed_sizes)[0]
+
+    # the segmentation is stored in a special-format png
+    panoptic_seg = Image.open(io.BytesIO(result["png_string"]))
+    # save image
+    panoptic_seg.save(path_to_save)
+
+    logger.debug("Returning Image")
+
+    return path_to_save
 
 
 def document_recognition(path_to_image):
@@ -140,12 +184,17 @@ def keypoint_detection(path_to_image):
 
 
 def image_captioning(path_to_image):
+
     # load the model
+    logger.debug("Start Initalizing Models.")
     model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning", cache_dir=cache_dir)
+    logger.debug("Start Initalizing Models.")
     feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning", cache_dir=cache_dir)
+    logger.debug("Start Initalizing Models.")
     tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning", cache_dir=cache_dir)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    logger.debug("Device: %s", device)
     model.to(device)
 
     # maximum length of the return. The model will stop generating if it reaches this length.
@@ -158,6 +207,8 @@ def image_captioning(path_to_image):
     if image.mode != "RGB":
         image = image.convert(mode="RGB")
 
+    logger.debug("Image converted!")
+
     pixel_values = feature_extractor(images=image, return_tensors="pt").pixel_values
     pixel_values = pixel_values.to(device)
 
@@ -165,11 +216,13 @@ def image_captioning(path_to_image):
 
     preds = tokenizer.batch_decode(output_ids, skip_special_tokens=True)
 
+    logger.debug("Returning Caption")
+
     return preds
 
 
 def main():
-    object_detection("/Users/marc/Documents/GitHub/DL4CV/app/tmp/d96da37d-1eff-47d9-8248-1957a8dea953.jpeg")
+    panoptic_segmentation("/Users/marc/Downloads/jeff-griffith-ZqYPM8i60F8-unsplash.jpeg")
 
 
 if __name__ == "__main__":

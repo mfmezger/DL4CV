@@ -6,7 +6,7 @@ from core.config import settings
 from pathlib import Path
 import uuid
 import logging
-from core.cv_services import image_classification, object_detection, semantic_segmentation, image_captioning
+from core.cv_services import image_classification, object_detection, semantic_segmentation, image_captioning, panoptic_segmentation
 from logging.config import dictConfig
 from core.config import LogConfig
 
@@ -90,7 +90,7 @@ async def sem_seg(file: UploadFile):
 
     # call service.
     logger.info("Starting Semantic Segmentation")
-    result = semantic_segmentation(f"tmp/{id}.{file.filename.split('.')[-1]}")
+    result = semantic_segmentation(f"tmp/{id}.{file.filename.split('.')[-1]}", f"data/{id}.jpg")
 
     logger.info("Returning the results.")
 
@@ -102,7 +102,13 @@ async def sem_seg(file: UploadFile):
 async def pan_seg(file: UploadFile):
 
     id = save_img(file)
-    pass
+
+    # call service.
+    logger.info("Starting Panoptic Segmentation")
+    result = panoptic_segmentation(f"tmp/{id}.{file.filename.split('.')[-1]}", f"data/{id}.jpg")
+
+    logger.info("Returning the results.")
+    return FileResponse(result)
 
 
 # rest service for keypoint detection.
@@ -119,7 +125,7 @@ async def img_cap(file: UploadFile):
     id = save_img(file)
 
     # call service.
-    pred = image_captioning(f"tmp/{id}.jpg")
+    pred = image_captioning(f"tmp/{id}.{file.filename.split('.')[-1]}")
     return pred
 
 
