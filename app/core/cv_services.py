@@ -6,12 +6,14 @@ from transformers import (
     AutoModelForImageClassification,
     DetrFeatureExtractor,
     DetrForObjectDetection,
-    AutoModelForImageSegmentation,
     DetrForSegmentation,
+    SegformerFeatureExtractor,
+    SegformerForSemanticSegmentation,
 )
 import cv2
 import io
 import torch
+import numpy as np
 from PIL import Image
 import logging
 from logging.config import dictConfig
@@ -121,24 +123,39 @@ def object_detection(path_to_image, path_to_save):
     return path_to_save
 
 
-def semantic_segmentation(path_to_image):
+def semantic_segmentation(path_to_image, path_to_save):
     """https://huggingface.co/facebook/detr-resnet-50-panoptic"""
-    feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/detr-resnet-50-panoptic", cache_dir=cache_dir)
+    logger.debug("Initialize Model")
+    feature_extractor = SegformerFeatureExtractor.from_pretrained("nvidia/segformer-b0-finetuned-ade-512-512")
+    logger.debug("Initialize Model")
+    model = SegformerForSemanticSegmentation.from_pretrained("nvidia/segformer-b0-finetuned-ade-512-512")
 
-    model = AutoModelForImageSegmentation.from_pretrained("facebook/detr-resnet-50-panoptic", cache_dir=cache_dir)
-
-    # prepare image for the model
+    # load the image. The image should be in RGB format and will be converted.
+    image = Image.open(path_to_image)
+    if image.mode != "RGB":
+        image = image.convert(mode="RGB")
+    logger.debug("Size of the Image: %s", image.size)
     inputs = feature_extractor(images=image, return_tensors="pt")
-
-    # forward pass
     outputs = model(**inputs)
+    logits = outputs.logits
 
-    # use the `post_process_panoptic` method of `DetrFeatureExtractor` to convert to COCO format
-    processed_sizes = torch.as_tensor(inputs["pixel_values"].shape[-2:]).unsqueeze(0)
-    result = feature_extractor.post_process_semantic(outputs, processed_sizes)[0]
+    # argmax the second dimension.
+    predicted_class = torch.argmax(logits.squeeze(), dim=0).cpu().numpy()
 
-    # the segmentation is stored in a special-format png
-    panoptic_seg = Image.open(io.BytesIO(result["png_string"]))
+    # upsample the image to the original size with nearest neighbor interpolation.
+    # create random colors for the classes.
+    colors = np.random.randint(0, 256, size=(predicted_class.max() + 1, 3), dtype="uint8")
+
+    color_map = np.array(colors)
+    color_image = Image.fromarray(color_map[predicted_class])
+    color_image = color_image.resize(image.size, Image.NEAREST)
+
+    logger.debug(list(logits.shape))
+
+    # save image
+    color_image.save(path_to_save)
+    logger.debug("Returning Image")
+    return path_to_save
 
 
 def panoptic_segmentation(path_to_image, path_to_save):

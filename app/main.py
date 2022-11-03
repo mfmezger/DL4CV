@@ -6,6 +6,7 @@ from core.config import settings
 from pathlib import Path
 import uuid
 import logging
+
 from core.cv_services import image_classification, object_detection, semantic_segmentation, image_captioning, panoptic_segmentation
 from logging.config import dictConfig
 from core.config import LogConfig
@@ -94,7 +95,7 @@ async def sem_seg(file: UploadFile):
 
     logger.info("Returning the results.")
 
-    return {"result": result}
+    return FileResponse(result)
 
 
 # rest service for panoptic segmentation.
