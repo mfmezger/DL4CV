@@ -59,8 +59,15 @@ To start the API in dev Mode use:
 ```uvicorn main:app --reload```
 
 
-###  Usage
+##  Usage
 
 To try the api immediatly you can access the openapi specification at:
 
 ```localhost:8000/docs```
+
+![OpenAPI Overview](Ressources/openAPI.png)
+
+
+
+## Included Libaries
+- [Hugging Face] (https://github.com/huggingface/transformers)
