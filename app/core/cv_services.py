@@ -12,7 +12,6 @@ from transformers import (
 )
 import cv2
 import io
-import os, io, os 
 import torch
 import numpy as np
 from PIL import Image
@@ -77,10 +76,6 @@ def image_classification(path_to_img):
     image = image.convert("RGB")
 
     extractor = AutoFeatureExtractor.from_pretrained("microsoft/resnet-50", cache_dir=cache_dir)
-
-    blubb = 1
-
-
 
     model = AutoModelForImageClassification.from_pretrained("microsoft/resnet-50", cache_dir=cache_dir)
 
