@@ -1,15 +1,19 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi import UploadFile
-from fastapi.responses import FileResponse
-from core.config import settings
-from pathlib import Path
-import uuid
 import logging
-
-from core.cv_services import image_classification, object_detection, semantic_segmentation, image_captioning, panoptic_segmentation
+import uuid
 from logging.config import dictConfig
-from core.config import LogConfig
+from pathlib import Path
+
+from core.config import LogConfig, settings
+from core.cv_services import (
+    image_captioning,
+    image_classification,
+    object_detection,
+    panoptic_segmentation,
+    semantic_segmentation,
+)
+from fastapi import FastAPI, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 
 def get_application():

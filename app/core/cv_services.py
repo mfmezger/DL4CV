@@ -1,23 +1,24 @@
+import io
+import logging
+from logging.config import dictConfig
+
+import cv2
+import numpy as np
+import torch
+from core.config import LogConfig
+from PIL import Image
 from transformers import (
     AutoFeatureExtractor,
-    VisionEncoderDecoderModel,
-    ViTFeatureExtractor,
-    AutoTokenizer,
     AutoModelForImageClassification,
+    AutoTokenizer,
     DetrFeatureExtractor,
     DetrForObjectDetection,
     DetrForSegmentation,
     SegformerFeatureExtractor,
     SegformerForSemanticSegmentation,
+    VisionEncoderDecoderModel,
+    ViTFeatureExtractor,
 )
-import cv2
-import io
-import torch
-import numpy as np
-from PIL import Image
-import logging
-from logging.config import dictConfig
-from core.config import LogConfig
 
 dictConfig(LogConfig().dict())
 logger = logging.getLogger("client")

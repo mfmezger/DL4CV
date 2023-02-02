@@ -1,5 +1,8 @@
+"""This is the configuration module for the application
+"""
 from typing import List, Union
-from pydantic import AnyHttpUrl, BaseSettings, validator, BaseModel
+
+from pydantic import AnyHttpUrl, BaseModel, BaseSettings, validator
 
 
 class Settings(BaseSettings):

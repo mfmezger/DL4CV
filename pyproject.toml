@@ -24,3 +24,6 @@ pillow = "^9.3.0"
 [build-system]
 requires = ["poetry-core>=1.2.0"]
 build-backend = "poetry.core.masonry.api"
+
+[settings]
+known_third_party = ["PIL", "core", "cv2", "fastapi", "numpy", "pydantic", "torch", "transformers"]

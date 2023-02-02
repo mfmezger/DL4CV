@@ -1,6 +1,6 @@
 # dl4cv -  A Computer Vision Hugging Face Server Backend :rocket:
 
-This is a projekt to integrate the major Computer Vision Use Cases into one Backend. The Deep Learning is  done via the
+This is a projekt to integrate the major Computer Vision Use Cases into one Backend. The Deep Learning is working via the
 Hugging Face Models.
 
 This project was generated via [manage-fastapi](https://ycd.github.io/manage-fastapi/)! :tada:
@@ -35,7 +35,7 @@ This project was generated via [manage-fastapi](https://ycd.github.io/manage-fas
 
 ## Installation with Docker
 
-It is necessary to install Docker to start the Backend. You can download docker here: https://www.docker.com/
+It's necessary to install Docker to start the Backend. You can download docker here: https://www.docker.com/
 To start the backend if docker is installed
 ```docker-compose up --build -d```
 

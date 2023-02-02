@@ -10,7 +10,7 @@ repos:
         - --remove-all-unused-imports
 
 -   repo: https://github.com/psf/black
-    rev: 22.10.0
+    rev: 22.12.0
     hooks:
     -   id: black
         args:
@@ -28,6 +28,7 @@ repos:
     -   id: check-ast
     # -   id: check-docstring-first
     -   id: detect-private-key
+    -   id: detect-aws-credentials
 
 -   repo: https://github.com/PyCQA/flake8
     rev: 5.0.4
@@ -41,12 +42,59 @@ repos:
         # E731 Lambda Avoidance can be avoided
         # F841, F821 Does not work correctly. E402 does not work correctly because the imports can be seperated via comments.
 
-# -   repo: https://github.com/PyCQA/pydocstyle
-#     rev: 6.1.1
-#     hooks:
-#     -   id: pydocstyle
+# for security problems
+-   repo: https://github.com/pycqa/bandit
+    rev: 1.7.4
+    hooks:
+    -   id: bandit
+        # Bandit does not need to run on test code
+        exclude: tests/
 
-# -   repo: https://github.com/python-poetry/poetry
-#     rev: '1.2.0rc1'  # add version here
-#     hooks:
-#         - id: poetry-check
+
+-   repo: https://github.com/PyCQA/pydocstyle
+    rev: 6.1.1
+    hooks:
+    -   id: pydocstyle
+        additional_dependencies: ["toml"]
+
+-   repo: https://github.com/btford/write-good
+    rev: v1.0.8
+    hooks:
+    -   id: write-good
+        files: "\\.(rst|md|markdown|mdown|mkdn)$"
+        args:
+        - --no-passive
+        # exclude: docs/infra/gerrit.rst|docs/best-practices.rst
+
+-   repo: https://github.com/adamchainz/blacken-docs
+    rev: 1.13.0  # replace with latest tag on GitHub
+    hooks:
+    -   id: blacken-docs
+        additional_dependencies:
+        - black==22.12.0
+
+-   repo: https://github.com/asottile/seed-isort-config
+    rev: v2.2.0
+    hooks:
+    -   id: seed-isort-config
+
+-   repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.4.2
+    hooks:
+    -   id: isort
+
+# shows old code and how to update it
+-   repo: https://github.com/asottile/pyupgrade
+    rev: v2.7.2
+    hooks:
+    -   id: pyupgrade
+        args: [--py36-plus]
+
+# for poetry projects
+-   repo: https://github.com/python-poetry/poetry
+    rev: 1.3.2  # add version here
+    hooks:
+    -   id: poetry-check
+    -   id: poetry-lock
+    -   id: poetry-export
+        args: ["-f", "requirements.txt", "-o", "requirements.txt"]
